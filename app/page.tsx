@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 type Session = {
   id: number;
@@ -13,9 +14,17 @@ export default function Home() {
   const [subject, setSubject] = useState("");
   const [minutes, setMinutes] = useState("");
   const [sessions, setSessions] = useState<Session[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     async function loadSessions() {
+      const { data: userData } = await supabase.auth.getUser();
+
+      if (!userData.user) {
+        router.push("/login");
+        return;
+      }
+
       const { data, error } = await supabase.from("study_sessions").select("*");
 
       if (error) {
@@ -25,7 +34,7 @@ export default function Home() {
 
       setSessions(data);
     }
-
+    
     loadSessions();
   }, []);
 
@@ -34,7 +43,7 @@ export default function Home() {
 
     const { data, error } = await supabase
       .from("study_sessions")
-      .insert({ subject, minutes: Number(minutes) })
+      .insert({ subject: subject, minutes: Number(minutes) })
       .select()
       .single();
 
