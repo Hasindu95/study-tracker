@@ -13,6 +13,7 @@ type Session = {
 export default function Home() {
   const [subject, setSubject] = useState("");
   const [minutes, setMinutes] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [sessions, setSessions] = useState<Session[]>([]);
   const router = useRouter();
 
@@ -24,6 +25,7 @@ export default function Home() {
         router.push("/login");
         return;
       }
+      setUserEmail(userData.user.email ?? "")
 
       const { data, error } = await supabase.from("study_sessions").select("*");
 
@@ -57,6 +59,17 @@ export default function Home() {
     setMinutes("");
   }
 
+  async function handleLogout() {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.log(error);
+      return;
+    }
+
+    router.push("/login");
+  }
+
 
   let total = 0;
   for (const s of sessions) {
@@ -65,6 +78,7 @@ export default function Home() {
 
   return (
     <main className="p-2">
+      <p className="text-sm text-gray-500">Logged in as: {userEmail}</p>
       <h1 className="text-4xl font-bold">Study Tracker</h1>
       <p className="text-gray-500 mt-2">Track your A/L study hours.</p>
 
@@ -103,6 +117,12 @@ export default function Home() {
         </ul>
 
         <p className="mt-4 font-bold">Total: {(total / 60).toFixed(1)} hours</p>
+
+        <button className="bg-red-500 text-white rounded p-2 mt-4"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
 
       </div>
     </main>
