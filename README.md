@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Study Tracker
 
-## Getting Started
+A web app for Sri Lankan A/L students to log study sessions and see how their time is split across subjects each week.
 
-First, run the development server:
+**Live demo:** https://study-tracker-gamma-teal.vercel.app/
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Log study sessions by subject and duration
+- See total study time, plus a weekly breakdown per subject (biggest first)
+- Sign up, log in and log out with email and password
+- Private accounts: each user only ever sees their own sessions
+- Weekly totals update instantly after logging a session
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Frontend:** Next.js (App Router), React, TypeScript, Tailwind CSS
+- **Backend & database:** Supabase (PostgreSQL, Auth)
+- **Testing:** Vitest
+- **Hosting:** Vercel (auto-deploys from GitHub)
 
-## Learn More
+## Security
 
-To learn more about Next.js, take a look at the following resources:
+Data privacy is enforced in the **database**, not just the UI:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Row Level Security (RLS)** is enabled on the `study_sessions` table. Policies use `auth.uid()` so users can only read and insert rows they own. This holds even if someone calls the API directly.
+- Each row's `user_id` defaults to `auth.uid()`, so the app can't save a session under someone else's account.
+- The `weekly_totals` view uses `security_invoker = true`, so it respects RLS instead of running with owner privileges and leaking other users' totals.
+- Only the Supabase **publishable** key is used in the browser. No secret keys are in the codebase, and `.env.local` is git-ignored.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The full database schema is in [`supabase/schema.sql`](supabase/schema.sql).
 
-## Deploy on Vercel
+## What I learned
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- How React state and `useEffect` work, and why data fetching belongs in an effect rather than in the component body
+- Why database-level security (RLS) matters: when I logged in, my anon-only policies blocked me, which taught me the difference between table grants and row policies
+- Letting the database aggregate data (`GROUP BY` in a view) instead of downloading every row to the browser
+- Debugging a real environment issue: a test runner failing because of an outdated Node.js version, despite a misleading error message
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Run locally
+
+1. Clone the repo and install dependencies:
+   ```bash
+   pnpm install
+   ```
+2. Create a Supabase project and run `supabase/schema.sql` in its SQL Editor.
+3. Create `.env.local` in the project root:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=https://qksqqryaujgzkdeahapf.supabase.co
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_yZTEbgTzDa9zAo3DqXN7yg_EeJ0mo33
+   ```
+4. Start the dev server:
+   ```bash
+   pnpm dev
+   ```
+5. Run the tests:
+   ```bash
+   pnpm test
+   ```
