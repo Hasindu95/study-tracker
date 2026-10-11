@@ -76,7 +76,7 @@ export default function Home() {
     setSubject("");
     setMinutes("");
 
-    loadWeeklyTotals();
+    await loadWeeklyTotals();
   }
 
   async function handleLogout() {
