@@ -10,11 +10,17 @@ type Session = {
   minutes: number;
 };
 
+type WeeklyTotal = {
+  subject: string;
+  total_minutes: number;
+};
+
 export default function Home() {
   const [subject, setSubject] = useState("");
   const [minutes, setMinutes] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [weeklyTotals, setWeeklyTotals] = useState<WeeklyTotal[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -25,7 +31,7 @@ export default function Home() {
         router.push("/login");
         return;
       }
-      setUserEmail(userData.user.email ?? "")
+      setUserEmail(userData.user.email ?? "");
 
       const { data, error } = await supabase.from("study_sessions").select("*");
 
@@ -35,10 +41,21 @@ export default function Home() {
       }
 
       setSessions(data);
+
+      await loadWeeklyTotals();
     }
-    
+
     loadSessions();
   }, []);
+
+  async function loadWeeklyTotals() {
+    const { data: totalsData } = await supabase
+      .from("weekly_totals")
+      .select("*")
+      .order("total_minutes", { ascending: false });
+
+    setWeeklyTotals(totalsData || []);
+  }
 
   async function handleLog() {
     if (!subject || !minutes) return;
@@ -50,20 +67,22 @@ export default function Home() {
       .single();
 
     if (error) {
-      console.log(error);
+      alert(error.message);
       return;
     }
 
     setSessions([...sessions, data]);
     setSubject("");
     setMinutes("");
+
+    loadWeeklyTotals();
   }
 
   async function handleLogout() {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      console.log(error);
+      alert(error.message);
       return;
     }
 
@@ -117,6 +136,17 @@ export default function Home() {
         </ul>
 
         <p className="mt-4 font-bold">Total: {(total / 60).toFixed(1)} hours</p>
+
+        <h2 className="mt-4 font-bold">This Week:</h2>
+        <ul>
+          {weeklyTotals.map((totals) => (
+            <li key={totals.subject} className="list-disc ml-6">
+              {totals.subject} - {(totals.total_minutes / 60).toFixed(1)} hours
+            </li>
+          ))}
+        </ul>
+
+        <p className="mt-4 font-bold">Hours: {(weeklyTotals.reduce((acc, curr) => acc + curr.total_minutes, 0) / 60).toFixed(1)} hours</p>
 
         <button className="bg-red-500 text-white rounded p-2 mt-4"
           onClick={handleLogout}

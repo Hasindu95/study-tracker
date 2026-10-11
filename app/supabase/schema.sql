@@ -28,3 +28,13 @@ create policy "Users insert own sessions"
 on study_sessions for insert
 to authenticated
 with check (auth.uid() = user_id);
+
+create view weekly_totals
+with (security_invoker = true)
+as
+select subject, sum(minutes) as total_minutes
+from study_sessions
+where created_at >= date_trunc('week', now())
+group by subject;
+
+grant select on weekly_totals to authenticated;
