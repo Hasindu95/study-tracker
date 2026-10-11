@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { minutesToHours } from "@/lib/format";
 
 type Session = {
   id: number;
@@ -135,18 +136,18 @@ export default function Home() {
           ))}
         </ul>
 
-        <p className="mt-4 font-bold">Total: {(total / 60).toFixed(1)} hours</p>
+        <p className="mt-4 font-bold">Total: {minutesToHours(total)} hours</p>
 
         <h2 className="mt-4 font-bold">This Week:</h2>
         <ul>
           {weeklyTotals.map((totals) => (
             <li key={totals.subject} className="list-disc ml-6">
-              {totals.subject} - {(totals.total_minutes / 60).toFixed(1)} hours
+              {totals.subject} - {minutesToHours(totals.total_minutes)} hours
             </li>
           ))}
         </ul>
 
-        <p className="mt-4 font-bold">Hours: {(weeklyTotals.reduce((acc, curr) => acc + curr.total_minutes, 0) / 60).toFixed(1)} hours</p>
+        <p className="mt-4 font-bold">Hours: {minutesToHours(weeklyTotals.reduce((acc, curr) => acc + curr.total_minutes, 0))} hours</p>
 
         <button className="bg-red-500 text-white rounded p-2 mt-4"
           onClick={handleLogout}
