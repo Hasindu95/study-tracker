@@ -46,8 +46,8 @@ The full database schema is in [`supabase/schema.sql`](supabase/schema.sql).
 2. Create a Supabase project and run `supabase/schema.sql` in its SQL Editor.
 3. Create `.env.local` in the project root:
    ```
-   NEXT_PUBLIC_SUPABASE_URL=https://qksqqryaujgzkdeahapf.supabase.co
-   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_yZTEbgTzDa9zAo3DqXN7yg_EeJ0mo33
+   NEXT_PUBLIC_SUPABASE_URL=your-project-url
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
    ```
 4. Start the dev server:
    ```bash
