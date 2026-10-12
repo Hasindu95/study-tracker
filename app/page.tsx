@@ -20,6 +20,7 @@ export default function Home() {
   const [subject, setSubject] = useState("");
   const [minutes, setMinutes] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [advice, setAdvice] = useState("");
   const [sessions, setSessions] = useState<Session[]>([]);
   const [weeklyTotals, setWeeklyTotals] = useState<WeeklyTotal[]>([]);
   const router = useRouter();
@@ -48,6 +49,22 @@ export default function Home() {
 
     loadSessions();
   }, []);
+
+  async function handleAdvice() {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    const res = await fetch("/api/coach", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ totals: weeklyTotals }),
+    });
+
+    const result = await res.json();
+    setAdvice(result.advice);
+  }
 
   async function loadWeeklyTotals() {
     const { data: totalsData } = await supabase
@@ -148,6 +165,14 @@ export default function Home() {
         </ul>
 
         <p className="mt-4 font-bold">Hours: {minutesToHours(weeklyTotals.reduce((acc, curr) => acc + curr.total_minutes, 0))} hours</p>
+
+        <button className="bg-green-500 text-white rounded p-2 mt-4"
+          onClick={handleAdvice}
+        >
+          Get advice
+        </button>
+
+        {advice && <p className="mt-2 text-blue-500">{advice}</p>}
 
         <button className="bg-red-500 text-white rounded p-2 mt-4"
           onClick={handleLogout}
